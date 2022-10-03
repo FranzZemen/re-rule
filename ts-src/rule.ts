@@ -1,10 +1,11 @@
+import {isPromise} from 'node:util/types';
 import {ExecutionContextI, LoggerAdapter} from '@franzzemen/app-utility';
-import {isPromise, Scope} from '@franzzemen/re-common';
+import {Scope} from '@franzzemen/re-common';
 import {LogicalConditionGroup} from '@franzzemen/re-logical-condition';
-import {RuleParser} from './parser/rule-parser';
-import {RuleReference, Version} from './rule-reference';
-import {RuleOptions} from './scope/rule-options';
-import {RuleScope} from './scope/rule-scope';
+import {RuleParser} from './parser/rule-parser.js';
+import {RuleReference, Version} from './rule-reference.js';
+import {RuleOptions} from './scope/rule-options.js';
+import {RuleScope} from './scope/rule-scope.js';
 
 export interface RuleResult {
   valid: boolean;
@@ -34,62 +35,20 @@ export class Rule {
   scope: RuleScope;
   logicalConditionGroup: LogicalConditionGroup;
 
-  constructor(rule?: RuleReference | Rule, parentScope?: Scope, ec?: ExecutionContextI) {
-    if(rule) {
-      Rule.fromToInstance(this, rule, parentScope, ec);
-    }
-  }
-
-  to(ec?:ExecutionContextI): RuleReference {
-    const ruleRef:Partial<RuleReference> = {};
-    ruleRef.version = this.version;  // TODO:  Copy instead
-    ruleRef.options = this.options; // TODO: Copy instead
-    ruleRef.refName = this.refName;
-    ruleRef.logicalConditionRef = this.logicalConditionGroup.to(ec);
-    return ruleRef as RuleReference;
-  }
-
-  static from(ruleRef: RuleReference | Rule, parentScope?: Scope, ec?: ExecutionContextI): Rule {
-    return new Rule(ruleRef, parentScope, ec);
-  }
-
-  private static fromToInstance(instance: Rule, ruleRef: RuleReference | Rule, parentScope?: Scope, ec?: ExecutionContextI) {
-    if(isRule(ruleRef)) {
-      Rule.fromCopy(instance, ruleRef, parentScope, ec);
-    } else {
-      Rule.fromReference(instance, ruleRef, parentScope, ec);
-    }
-  }
-
-
-  private static fromReference(instance: Rule, ruleRef: RuleReference, parentScope?: Scope, ec?:ExecutionContextI) {
-    const ruleScope = new RuleScope(ruleRef.options, parentScope, ec);
-    instance.scope = ruleScope;
+  // Remember that contained object may need scope.resolve() if their references contained unresolved items.
+  constructor(ref: RuleReference, scope:RuleScope, ec?: ExecutionContextI) {
+    this.scope = scope;
     // TODO: Deep copy?
-    instance.options = ruleRef.options;
-    instance.refName = ruleRef.refName;
+    this.options = ref.options;
+    this.refName = ref.refName;
     // TODO:  Deep copy?
-    instance.version = ruleRef.version;
-    instance.logicalConditionGroup = LogicalConditionGroup.from(ruleRef.logicalConditionRef, instance.scope, ec);
+    this.version = ref.version;
+    this.logicalConditionGroup = new LogicalConditionGroup(ref.logicalConditionRef, scope, ec);
   }
 
-  private static fromCopy(instance: Rule, rule: Rule, parentScope?: Scope, ec?: ExecutionContextI) {
-    instance.scope = new RuleScope(rule.options, parentScope, ec);
-    // TODO: Deep copy?
-    instance.options = rule.options;
-    instance.refName = rule.refName;
-    // TODO:  Deep copy?
-    instance.version = rule.version;
-    instance.logicalConditionGroup = LogicalConditionGroup.from(rule.logicalConditionGroup, instance.scope, ec);
-  }
 
-  /**
-   * @deprecated
-   * @param dataDomain
-   * @param ec
-   */
-  awaitValidation(dataDomain: any, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
-    const log = new LoggerAdapter(ec, 'rules-engine', 'rule', 'Rule.awaitValidation');
+  awaitExecution(dataDomain: any, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+    const log = new LoggerAdapter(ec, 're-rule', 'rule', 'Rule.awaitValidation');
     const logicalConditionResult = this.logicalConditionGroup.validate(dataDomain, this.scope, ec);
     if(isPromise(logicalConditionResult)) {
       return logicalConditionResult.then(result => {
@@ -100,10 +59,6 @@ export class Rule {
     }
   }
 
-  awaitExecution(dataDomain: any, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
-    return this.awaitValidation(dataDomain, ec);
-  }
-
   /**
    * The synchronous version of awaitExecution
    * @param dataDomain
@@ -112,7 +67,7 @@ export class Rule {
   executeSync(dataDomain: any, ec?: ExecutionContextI): RuleResult {
     const result = this.awaitExecution(dataDomain, ec);
     if(isPromise(result)) {
-      const log = new LoggerAdapter(ec, 'rules-engine', 'rules', 'executeSync');
+      const log = new LoggerAdapter(ec, 're-rule', 'rules', 'executeSync');
       const err = new Error('Promise returned in executeSync');
       log.error(err);
       throw(err);
@@ -128,7 +83,7 @@ export class Rule {
    * @param parentScope Instruct the method to use the parent scope, for example if one wants to use the Rules.Engine scope.  Set to undefined by default.
    * @param ec
    */
-  static awaitRuleExecution(dataDomain: any, rule: string | RuleReference | Rule, parentScope?: Scope, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  static awaitRuleExecution(dataDomain: any, rule: string | RuleReference | Rule, parentScope?: RuleScope, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     let theRule: Rule;
     if(typeof rule === 'string') {
       const parser = new RuleParser();
@@ -149,7 +104,7 @@ export class Rule {
    * @param parentScope
    * @param ec
    */
-  static executeRuleSync(dataDomain: any, rule: string | RuleReference | Rule, parentScope?: Scope, ec?: ExecutionContextI): RuleResult {
+  static executeRuleSync(dataDomain: any, rule: string | RuleReference | Rule, parentScope?: RuleScope, ec?: ExecutionContextI): RuleResult {
     let theRule: Rule;
     if(typeof rule === 'string') {
       const parser = new RuleParser();

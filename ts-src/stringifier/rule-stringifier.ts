@@ -1,9 +1,9 @@
 import {ExecutionContextI} from '@franzzemen/app-utility';
 import {LogicalConditionStringifier} from '@franzzemen/re-logical-condition';
-import {RuleReference} from '../rule-reference';
-import {RuleScope} from '../scope/rule-scope';
-import {RuleHintKey} from '../util/rule-hint-key';
-import {StringifyRuleOptions} from './stringify-rule-options';
+import {RuleReference} from '../rule-reference.js';
+import {RuleScope} from '../scope/rule-scope.js';
+import {RuleHintKey} from '../util/rule-hint-key.js';
+import {StringifyRuleOptions} from './stringify-rule-options.js';
 
 
 export class RuleStringifier {

@@ -1,7 +1,7 @@
 import 'mocha';
-import {isPromise} from '@franzzemen/re-common';
+import {isPromise} from 'node:util/types';
 import chai from 'chai';
-import {Rule, RuleParser} from '../publish';
+import {Rule, RuleParser, RuleScope} from '../publish/index.js';
 
 
 const expect = chai.expect;
@@ -21,7 +21,8 @@ describe('Rules Engine Tests', () => {
         const domain = {price: 5.0};
         const ruleText = 'price = 5.0';
         const [remaining, ruleReference] = parser.parse(ruleText);
-        const rule = new Rule(ruleReference);
+        const scope = new RuleScope();
+        const rule = new Rule(ruleReference, scope);
 
         it('should execute awaitRuleExecution for text', done => {
           const result = Rule.awaitRuleExecution(domain, ruleText);

@@ -1,1 +1,1 @@
-export * from './rule-stringifier';
+export * from './rule-stringifier.js';

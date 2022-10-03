@@ -1,6 +1,6 @@
 import 'mocha';
 import chai from 'chai';
-import {RuleParser, RuleScope, RuleStringifier} from '../../publish';
+import {RuleParser, RuleScope, RuleStringifier} from '../../publish/index.js';
 
 
 const expect = chai.expect;

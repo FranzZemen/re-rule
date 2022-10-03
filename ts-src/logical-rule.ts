@@ -30,8 +30,8 @@ import {isRecursiveGrouping} from '../recursive-grouping/recursive-grouping';
 import {ValidationResult} from '../validation-result';
 import {islogicalConditionArray, LogicalCondition, LogicalConditionResult} from '../logical-condition/logical-condition';
 import {LogicalConditionGroupReference, LogicalOperator} from '../logical-condition/logical-condition-group-reference';
-import {Rule} from './rule';
-import {RuleReference} from './rule-reference';
+import {Rule} from './rule.js';
+import {RuleReference} from './rule-reference.js';
 
 
 export interface LogicalRuleReference extends RuleReference {
@@ -67,7 +67,7 @@ export class LogicalRule extends Rule {
 
   constructor(ref: RuleReference, dataTypeFactory: DataTypeFactory, execContext?: ExecutionContextI) {
     super(ref, execContext);
-    const log = new LoggerAdapter(execContext, 'rules-engine', 'rule', LogicalRule.className + '.constructor');
+    const log = new LoggerAdapter(execContext, 're-rule', 'rule', LogicalRule.className + '.constructor');
     // -----
     log.debug(ref, 'Creating LogicalRule');
     // -----
@@ -193,7 +193,7 @@ export class LogicalRule extends Rule {
       throw new Error('Cleanup promise')
     }
     return new Promise<ValidationResult>((resolve, reject)=> {
-      const log = new LoggerAdapter(execContext, 'rules-engine', 'rule', LogicalRule.className + '.validate');
+      const log = new LoggerAdapter(execContext, 're-rule', 'rule', LogicalRule.className + '.validate');
       const localContext = `${this.refName}" version:${this.version.major}.${this.version.minor}.${this.version.patch}`
       // -----
       log.debug(item, 'Validating item for rule ' + localContext);
@@ -220,7 +220,7 @@ export class LogicalRule extends Rule {
   }
 
   private static evaluateConditions(logicalCondition: LogicalCondition, item: any, execContext?:ExecutionContextI): LogicalConditionResult {
-    const log = new LoggerAdapter(execContext, 'rules-engine', 'rule', LogicalRule.className + ':evaluateConditions');
+    const log = new LoggerAdapter(execContext, 're-rule', 'rule', LogicalRule.className + ':evaluateConditions');
     if(logicalCondition !== undefined) {
       if(islogicalConditionArray(logicalCondition.condition)) {
         // -----

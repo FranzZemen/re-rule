@@ -1,2 +1,2 @@
-export * from './rule-options';
-export * from './rule-scope';
+export * from './rule-options.js';
+export * from './rule-scope.js';

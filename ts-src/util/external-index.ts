@@ -1,1 +1,1 @@
-export * from './rule-hint-key';
+export * from './rule-hint-key.js';
