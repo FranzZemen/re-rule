@@ -14,15 +14,15 @@ const unReachableCode = false;
 Rules or their components are tested throughout different test suites, so testing here may be sparse
  */
 
-describe('Rules Engine Tests', () => {
-  describe('Rule Validation Tests', () => {
-    describe('/core/rule/rule.test', () => {
+describe('re-rule tests', () => {
+  describe('validation tests', () => {
+    describe('rule.test', () => {
       describe('static API', () => {
         const domain = {price: 5.0};
         const ruleText = 'price = 5.0';
         const [remaining, ruleReference] = parser.parse(ruleText);
-        const scope = new RuleScope();
-        const rule = new Rule(ruleReference, scope);
+        //const scope = new RuleScope();
+        // const rule = new Rule(ruleReference);
 
         it('should execute awaitRuleExecution for text', done => {
           const result = Rule.awaitRuleExecution(domain, ruleText);
@@ -49,6 +49,10 @@ describe('Rules Engine Tests', () => {
           }
         });
         it('should execute awaitRuleExecution for rule', done => {
+          const domain = {price: 5.0};
+          const ruleText = 'price = 5.0';
+          const [remaining, ruleReference] = parser.parse(ruleText);
+          const rule = new Rule(ruleReference);
           const result = Rule.awaitRuleExecution(domain, rule);
           if (isPromise(result)) {
             result.then(ruleResult => {
@@ -60,6 +64,7 @@ describe('Rules Engine Tests', () => {
             done();
           }
         });
+        /*
         it('should execute executeRuleSync for text', done => {
           const result = Rule.executeRuleSync(domain, ruleText);
           result.valid.should.be.true;
@@ -75,6 +80,8 @@ describe('Rules Engine Tests', () => {
           result.valid.should.be.true;
           done();
         });
+
+         */
       });
     });
   });
