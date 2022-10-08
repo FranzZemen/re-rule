@@ -1,7 +1,7 @@
 import 'mocha';
 import {isPromise} from 'node:util/types';
 import chai from 'chai';
-import {Rule, RuleParser, RuleScope} from '../publish/index.js';
+import {Rule, RuleParser, RuleResult, RuleScope} from '../publish/index.js';
 
 
 const expect = chai.expect;
@@ -18,14 +18,10 @@ describe('re-rule tests', () => {
   describe('validation tests', () => {
     describe('rule.test', () => {
       describe('static API', () => {
-        const domain = {price: 5.0};
-        const ruleText = 'price = 5.0';
-        const [remaining, ruleReference] = parser.parse(ruleText);
-        //const scope = new RuleScope();
-        // const rule = new Rule(ruleReference);
-
         it('should execute awaitRuleExecution for text', done => {
-          const result = Rule.awaitRuleExecution(domain, ruleText);
+          const domain = {price: 5.0};
+          const ruleText = 'price = 5.0';
+          const result =Rule.parseAndAwaitExecution(domain, ruleText, {});
           if (isPromise(result)) {
             result.then(ruleResult => {
               unReachableCode.should.be.true;
@@ -36,24 +32,13 @@ describe('re-rule tests', () => {
             done();
           }
         });
-        it('should execute awaitRuleExecution for reference', done => {
-          const result = Rule.awaitRuleExecution(domain, ruleReference);
-          if (isPromise(result)) {
-            result.then(ruleResult => {
-              unReachableCode.should.be.true;
-              done();
-            });
-          } else {
-            result.valid.should.be.true;
-            done();
-          }
-        });
+
         it('should execute awaitRuleExecution for rule', done => {
           const domain = {price: 5.0};
           const ruleText = 'price = 5.0';
-          const [remaining, ruleReference] = parser.parse(ruleText);
-          const rule = new Rule(ruleReference);
-          const result = Rule.awaitRuleExecution(domain, rule);
+          const [remaining, ruleReference, ruleScope] = parser.parse(ruleText);
+          const rule = new Rule(ruleReference, ruleScope);
+          const result = rule.awaitEvaluation(domain);
           if (isPromise(result)) {
             result.then(ruleResult => {
               unReachableCode.should.be.true;

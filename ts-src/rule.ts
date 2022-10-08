@@ -1,16 +1,35 @@
 import {isPromise} from 'node:util/types';
 import {ExecutionContextI, LoggerAdapter} from '@franzzemen/app-utility';
-import {Scope} from '@franzzemen/re-common';
-import {LogicalConditionGroup} from '@franzzemen/re-logical-condition';
+import {LogicalConditionGroup, LogicalConditionResult} from '@franzzemen/re-logical-condition';
 import {RuleParser} from './parser/rule-parser.js';
 import {RuleReference, Version} from './rule-reference.js';
 import {RuleOptions} from './scope/rule-options.js';
 import {RuleScope} from './scope/rule-scope.js';
 
-export interface RuleResult {
-  valid: boolean;
+export interface RuleResultI {
+  logicalConditionResult: LogicalConditionResult;
   ruleRef: string;
   ruleText: string;
+}
+
+export class RuleResult {
+  protected _result: RuleResultI;
+
+  constructor(_result: RuleResultI, ec?: ExecutionContextI) {
+    this._result = _result;
+  }
+
+  get result (): RuleResultI {
+    return this._result;
+  }
+
+  get valid(): boolean | 'Not resolved' {
+    if(isPromise(this._result?.logicalConditionResult)) {
+      return 'Not resolved';
+    } else {
+      return this._result.logicalConditionResult.result;
+    }
+  }
 }
 
 
@@ -31,17 +50,18 @@ export function possiblyARuleConstruct(text: string): boolean {
 export class Rule {
   refName: string;
   version: Version = {major: 1.0, minor: 0.0, patch: 0.0};
-  options: RuleOptions = {};
   scope: RuleScope;
   logicalConditionGroup: LogicalConditionGroup;
 
-  // Remember that contained object may need scope.resolve() if their references contained unresolved items.
-  constructor(ref: RuleReference, options?: RuleOptions, parentScope?:RuleScope, ec?: ExecutionContextI) {
-    this.scope = new RuleScope(options, parentScope, ec);
-    // TODO: Deep copy?
-    this.options = ref.options;
+  /**
+   *  Build a rule
+   * @param ref
+   * @param thisScope If provided (such as right after parsing a rule), then this is the scope to use, fully initialized with references
+   * @param ec
+   */
+  constructor(ref: RuleReference, thisScope?: RuleScope, ec?: ExecutionContextI) {
+    this.scope = thisScope;
     this.refName = ref.refName;
-    // TODO:  Deep copy?
     this.version = ref.version;
     this.logicalConditionGroup = new LogicalConditionGroup(ref.logicalConditionRef, this.scope, ec);
   }
@@ -49,37 +69,39 @@ export class Rule {
 
   awaitEvaluation(dataDomain: any, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     const log = new LoggerAdapter(ec, 're-rule', 'rule', 'Rule.awaitValidation');
-    const logicalConditionResult = this.logicalConditionGroup.awaitEvaluation(dataDomain, this.scope, ec);
-    if(isPromise(logicalConditionResult)) {
-      return logicalConditionResult.then(result => {
-        return {ruleRef: this.refName, ruleText: '', valid: result.result};
-      });
+    const logicalConditionResultOrPromise = this.logicalConditionGroup.awaitEvaluation(dataDomain, this.scope, ec);
+    if(isPromise(logicalConditionResultOrPromise)) {
+      return logicalConditionResultOrPromise
+        .then(logicalConditionResult => {
+          return new RuleResult({ruleRef: this.refName, ruleText: '', logicalConditionResult: logicalConditionResult});
+        });
     } else {
-      return {ruleRef: this.refName, ruleText: '', valid: logicalConditionResult.result};
+      return new RuleResult({ruleRef: this.refName, ruleText: '', logicalConditionResult: logicalConditionResultOrPromise});
     }
   }
-  
+
 
   /**
-   * Executes a rule, whether part of the Rules Engine schema or not.
+   * Executes a rule, but parses it first.
    * @param dataDomain
-   * @param rule Either the rule in Text Format, Reference Format or Internal Format
+   * @param rule
    * @param options
-   * @param parentScope Instruct the method to use the parent scope, for example if one wants to use the Rules.Engine scope.  Set to undefined by default.
    * @param ec
    */
-  static awaitRuleExecution(dataDomain: any, rule: string | RuleReference | Rule, options?: RuleOptions, parentScope?: RuleScope, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
-    let theRule: Rule;
-    if(typeof rule === 'string') {
-      const parser = new RuleParser();
-      let [remaining, ref] = parser.parse(rule, parentScope, ec);
-      theRule = new Rule(ref, options, parentScope, ec);
-    } else if(isRule(rule)) {
-      theRule = rule;
+  static parseAndAwaitExecution(dataDomain: any, rule: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+    const parser = new RuleParser();
+    let [remaining, ref, ruleScope] = parser.parse(rule, undefined, ec);
+    let trueOrPromise = RuleScope.resolve(ruleScope, ec);
+    if(isPromise(trueOrPromise)) {
+      return trueOrPromise
+        .then(trueVal => {
+          const rule: Rule = new Rule(ref, ruleScope, ec);
+          return rule.awaitEvaluation(dataDomain, ec);
+        })
     } else {
-      theRule = new Rule(rule, options, parentScope, ec);
+      const rule: Rule = new Rule(ref, ruleScope, ec);
+      return rule.awaitEvaluation(dataDomain, ec);
     }
-    return theRule.awaitEvaluation(dataDomain, ec);
   }
 
 }

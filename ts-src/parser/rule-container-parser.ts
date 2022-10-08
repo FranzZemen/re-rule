@@ -11,12 +11,12 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
     return 'Default';
   };
 
-  parse(near: string, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, ParserMessages] {
+  parse(near: string, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-container-parser', 'parse');
     let remaining = near;
     let ref: Ref;
     let messages: ParserMessages = [];
-
+    let ruleScope: RuleScope;
     // Parse while we have input (or an end condition has been reached)
     while (remaining.length > 0) {
       let hints: Hints = Hints.peekHints(remaining, '', ec);
@@ -45,9 +45,11 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
       }
       options = options ? options : {};
       ref = this.createReference(refName, options);
-      const scope = this.createScope(options, parentScope, ec);
+
+      ruleScope = this.createScope(options, parentScope, ec);
+
       let localMessages: ParserMessages;
-      [remaining, localMessages] = this.delegateParsing(ref, remaining, scope, ec);
+      [remaining, localMessages] = this.delegateParsing(ref, remaining, ruleScope, ec);
       if(localMessages && localMessages.length > 0) {
         messages = messages.concat(localMessages);
       }
@@ -57,7 +59,7 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
         break;
       }
     }
-    return [remaining, ref, messages];
+    return [remaining, ref, ruleScope, messages];
   }
 
   protected abstract createReference(refName: string, options: Options): Ref;
