@@ -59,7 +59,7 @@ export class Rule {
    * @param thisScope If provided (such as right after parsing a rule), then this is the scope to use, fully initialized with references
    * @param ec
    */
-  constructor(ref: RuleReference, thisScope?: RuleScope, ec?: ExecutionContextI) {
+  constructor(ref: RuleReference, thisScope: RuleScope, ec?: ExecutionContextI) {
     this.scope = thisScope;
     this.refName = ref.refName;
     this.version = ref.version;
