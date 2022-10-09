@@ -10,7 +10,7 @@ export interface RuleOptionOverride {
 }
 
 export type DelegateOptions = {
-  options: RuleOptions, // Base for others
+  options?: RuleOptions, // Base for others
   mergeFunction: (target: Options,source: Options, mergeInto?:boolean) => Options,
   overrides?: RuleOptionOverride[]
 }
