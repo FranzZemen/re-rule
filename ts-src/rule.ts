@@ -62,11 +62,11 @@ export class Rule {
    */
   constructor(ref: RuleReference, thisScope?: RuleScope, ec?: ExecutionContextI) {
     // Which scope?
+    this.refName = ref.refName;
     this.scope = ref.loadedScope ? ref.loadedScope : thisScope ? thisScope : undefined;
     if(!this.scope) {
       logErrorAndThrow(`Scope not provided for refName ${ref.refName}`, new LoggerAdapter(ec, 're-rule', 'rule', 'constructor'), ec);
     }
-    this.refName = ref.refName;
     this.version = ref.version;
     this.logicalConditionGroup = new LogicalConditionGroup(ref.logicalConditionRef, this.scope, ec);
   }

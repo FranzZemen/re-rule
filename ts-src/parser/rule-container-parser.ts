@@ -5,7 +5,7 @@ import {RuleOptions} from '../scope/rule-options.js';
 import {RuleScope} from '../scope/rule-scope.js';
 
 
-export interface RuleOptionOverride {
+export interface RuleOptionOverrides {
   refName: string,
   options: RuleOptions; // Base for others
 }
@@ -13,7 +13,7 @@ export interface RuleOptionOverride {
 export type DelegateOptions = {
   options?: RuleOptions, // Base for others
   mergeFunction: (target: Options,source: Options, mergeInto?:boolean) => Options,
-  overrides?: RuleOptionOverride[]
+  overrides?: RuleOptionOverrides[]
 }
 
 export abstract class RuleContainerParser<Ref extends ScopedEntity> {
