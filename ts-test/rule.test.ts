@@ -36,8 +36,8 @@ describe('re-rule tests', () => {
         it('should execute awaitRuleExecution for rule', done => {
           const domain = {price: 5.0};
           const ruleText = 'price = 5.0';
-          const [remaining, ruleReference, ruleScope] = parser.parse(ruleText);
-          const rule = new Rule(ruleReference, ruleScope);
+          const [remaining, ruleReference] = parser.parse(ruleText);
+          const rule = new Rule(ruleReference);
           const result = rule.awaitEvaluation(domain);
           if (isPromise(result)) {
             result.then(ruleResult => {

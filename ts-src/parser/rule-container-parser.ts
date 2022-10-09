@@ -1,5 +1,6 @@
 import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
 import {HintKey, NamedReference, Options, ParserMessages, Scope} from '@franzzemen/re-common';
+import {ScopedEntity} from '../rule-reference.js';
 import {RuleOptions} from '../scope/rule-options.js';
 import {RuleScope} from '../scope/rule-scope.js';
 
@@ -15,7 +16,7 @@ export type DelegateOptions = {
   overrides?: RuleOptionOverride[]
 }
 
-export abstract class RuleContainerParser<Ref extends NamedReference> {
+export abstract class RuleContainerParser<Ref extends ScopedEntity> {
 
   constructor(protected hintBlock: string, protected parentHintBlocks: string[]) {
   }
@@ -24,7 +25,7 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
     return 'Default';
   };
 
-  parse(near: string, delegateOptions?: DelegateOptions, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
+  parse(near: string, delegateOptions?: DelegateOptions, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-container-parser', 'parse');
     let remaining = near;
     let ref: Ref;
@@ -82,10 +83,10 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
       }
       ref = this.createReference(refName, options);
 
-      ruleScope = this.createScope(options, parentScope, ec);
+      ref.loadedScope = this.createScope(options, parentScope, ec);
 
       let localMessages: ParserMessages;
-      [remaining, localMessages] = this.delegateParsing(ref, remaining, ruleScope, ec);
+      [remaining, localMessages] = this.delegateParsing(ref, remaining, ec);
       if(localMessages && localMessages.length > 0) {
         messages = messages.concat(localMessages);
       }
@@ -95,12 +96,12 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
         break;
       }
     }
-    return [remaining, ref, ruleScope, messages];
+    return [remaining, ref, messages];
   }
 
   protected abstract createReference(refName: string, options: Options): Ref;
 
-  protected abstract delegateParsing(ref: Ref, near: string, scope: RuleScope, ec?: ExecutionContextI): [string, ParserMessages];
+  protected abstract delegateParsing(ref: Ref, near: string, ec?: ExecutionContextI): [string, ParserMessages];
 
   protected abstract createScope(options?: Options, parentScope?: Scope, ec?: ExecutionContextI): RuleScope;
 }

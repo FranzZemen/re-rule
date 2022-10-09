@@ -1,3 +1,4 @@
+import {logErrorAndThrow} from '@franzzemen/app-utility/enhanced-error.js';
 import {isPromise} from 'node:util/types';
 import {ExecutionContextI, LoggerAdapter} from '@franzzemen/app-utility';
 import {LogicalConditionGroup, LogicalConditionResult} from '@franzzemen/re-logical-condition';
@@ -59,8 +60,12 @@ export class Rule {
    * @param thisScope If provided (such as right after parsing a rule), then this is the scope to use, fully initialized with references
    * @param ec
    */
-  constructor(ref: RuleReference, thisScope: RuleScope, ec?: ExecutionContextI) {
-    this.scope = thisScope;
+  constructor(ref: RuleReference, thisScope?: RuleScope, ec?: ExecutionContextI) {
+    // Which scope?
+    this.scope = ref.loadedScope ? ref.loadedScope : thisScope ? thisScope : undefined;
+    if(!this.scope) {
+      logErrorAndThrow(`Scope not provided for refName ${ref.refName}`, new LoggerAdapter(ec, 're-rule', 'rule', 'constructor'), ec);
+    }
     this.refName = ref.refName;
     this.version = ref.version;
     this.logicalConditionGroup = new LogicalConditionGroup(ref.logicalConditionRef, this.scope, ec);
@@ -90,16 +95,16 @@ export class Rule {
    */
   static awaitExecution(dataDomain: any, text: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     const parser = new RuleParser();
-    let [remaining, ref, ruleScope, parserMessages] = parser.parse(text, {options, mergeFunction: _mergeRuleOptions}, undefined, ec);
-    let trueOrPromise = RuleScope.resolve(ruleScope, ec);
+    let [remaining, ref, parserMessages] = parser.parse(text, {options, mergeFunction: _mergeRuleOptions}, undefined, ec);
+    let trueOrPromise = RuleScope.resolve(ref.loadedScope, ec);
     if(isPromise(trueOrPromise)) {
       return trueOrPromise
         .then(trueVal => {
-          const rule: Rule = new Rule(ref, ruleScope, ec);
+          const rule: Rule = new Rule(ref, undefined, ec);
           return rule.awaitEvaluation(dataDomain, ec);
         })
     } else {
-      const rule: Rule = new Rule(ref, ruleScope, ec);
+      const rule: Rule = new Rule(ref, undefined, ec);
       return rule.awaitEvaluation(dataDomain, ec);
     }
   }
