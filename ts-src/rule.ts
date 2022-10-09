@@ -3,7 +3,7 @@ import {ExecutionContextI, LoggerAdapter} from '@franzzemen/app-utility';
 import {LogicalConditionGroup, LogicalConditionResult} from '@franzzemen/re-logical-condition';
 import {RuleParser} from './parser/rule-parser.js';
 import {RuleReference, Version} from './rule-reference.js';
-import {RuleOptions} from './scope/rule-options.js';
+import {_mergeRuleOptions, RuleOptions} from './scope/rule-options.js';
 import {RuleScope} from './scope/rule-scope.js';
 
 export interface RuleResultI {
@@ -84,12 +84,13 @@ export class Rule {
   /**
    * Executes a rule, but parses it first.
    * @param dataDomain
-   * @param text The rule text.  If options are needed, they must be in the options hint
+   * @param text The rule text.
+   * @param options Options can be set here and in the text.  Text overrides any duplicate options
    * @param ec
    */
-  static awaitExecution(dataDomain: any, text: string,ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  static awaitExecution(dataDomain: any, text: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     const parser = new RuleParser();
-    let [remaining, ref, ruleScope, parserMessages] = parser.parse(text, undefined, undefined, ec);
+    let [remaining, ref, ruleScope, parserMessages] = parser.parse(text, {options, mergeFunction: _mergeRuleOptions}, undefined, ec);
     let trueOrPromise = RuleScope.resolve(ruleScope, ec);
     if(isPromise(trueOrPromise)) {
       return trueOrPromise
