@@ -6,12 +6,13 @@ import {RuleScope} from './scope/rule-scope.js';
 export type Version = {major: number, minor: number, patch: number};
 
 
-export interface ScopedEntity extends NamedReference {
+export interface ScopedReference extends NamedReference {
   loadedScope?: RuleScope;  // Parser and scope load help
 }
 
-export interface RuleReference extends ScopedEntity {
+export interface RuleReference extends ScopedReference {
   version: Version;
   options: RuleOptions;
   logicalConditionRef: LogicalConditionGroupReference;
 }
+

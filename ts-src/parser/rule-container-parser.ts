@@ -1,9 +1,11 @@
 import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
-import {HintKey, NamedReference, Options, ParserMessages, Scope} from '@franzzemen/re-common';
-import {ScopedEntity} from '../rule-reference.js';
+import {HintKey, Options, ParserMessages, Scope} from '@franzzemen/re-common';
+import {ScopedReference} from '../rule-reference.js';
 import {RuleOptions} from '../scope/rule-options.js';
 import {RuleScope} from '../scope/rule-scope.js';
 
+
+export type OptionMergeFunction = (target: Options, source: Options, mergeInto?: boolean) => Options;
 
 export interface RuleOptionOverrides {
   refName: string,
@@ -12,11 +14,11 @@ export interface RuleOptionOverrides {
 
 export type DelegateOptions = {
   options?: RuleOptions, // Base for others
-  mergeFunction: (target: Options,source: Options, mergeInto?:boolean) => Options,
+  mergeFunction: OptionMergeFunction,
   overrides?: RuleOptionOverrides[]
 }
 
-export abstract class RuleContainerParser<Ref extends ScopedEntity> {
+export abstract class RuleContainerParser<Ref extends ScopedReference> {
 
   constructor(protected hintBlock: string, protected parentHintBlocks: string[]) {
   }
@@ -60,7 +62,7 @@ export abstract class RuleContainerParser<Ref extends ScopedEntity> {
       let inputOptions = delegateOptions?.options;
       let overrideOptions = (delegateOptions?.overrides?.find(delegate => delegate.refName === refName))?.options;
       let mergeFunction = delegateOptions?.mergeFunction;
-      if(options) {
+      if (options) {
         if (inputOptions) {
           if (overrideOptions) {
             options = mergeFunction(mergeFunction(inputOptions, overrideOptions), options);
@@ -87,7 +89,7 @@ export abstract class RuleContainerParser<Ref extends ScopedEntity> {
 
       let localMessages: ParserMessages;
       [remaining, localMessages] = this.delegateParsing(ref, remaining, ec);
-      if(localMessages && localMessages.length > 0) {
+      if (localMessages && localMessages.length > 0) {
         messages = messages.concat(localMessages);
       }
       // Check if there is a next hint and it is the same as "this" level, break if is so that parent can handle
