@@ -18,7 +18,7 @@ describe('re-rule tests', () => {
   describe('validation tests', () => {
     describe('rule.test', () => {
       describe('static API', () => {
-        it('should execute awaitRuleExecution for text', done => {
+        it('should execute awaitExecution for text', done => {
           const domain = {price: 5.0};
           const ruleText = 'price = 5.0';
           const result =Rule.awaitExecution(domain, ruleText, {});

@@ -103,6 +103,5 @@ export class Rule {
       return rule.awaitEvaluation(dataDomain, ec);
     }
   }
-
 }
 

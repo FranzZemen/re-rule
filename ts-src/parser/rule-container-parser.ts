@@ -1,6 +1,19 @@
 import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
 import {HintKey, NamedReference, Options, ParserMessages, Scope} from '@franzzemen/re-common';
+import {RuleOptions} from '../scope/rule-options.js';
 import {RuleScope} from '../scope/rule-scope.js';
+
+
+export interface RuleOptionOverride {
+  refName: string,
+  options: RuleOptions; // Base for others
+}
+
+export type DelegateOptions = {
+  options: RuleOptions, // Base for others
+  mergeFunction: (target: Options,source: Options, mergeInto?:boolean) => Options,
+  overrides?: RuleOptionOverride[]
+}
 
 export abstract class RuleContainerParser<Ref extends NamedReference> {
 
@@ -11,12 +24,12 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
     return 'Default';
   };
 
-  parse(near: string, explicitOptions?: {options: Options, mergeFunction: (source: Options,target: Options, mergeInto?:boolean) => Options}, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
+  parse(near: string, delegateOptions?: DelegateOptions, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-container-parser', 'parse');
     let remaining = near;
     let ref: Ref;
     let messages: ParserMessages = [];
-    let ruleScope: RuleScope;
+    let ruleScope: RuleScope; // Base for RuleSetScope etc.
     // Parse while we have input (or an end condition has been reached)
     while (remaining.length > 0) {
       let hints: Hints = Hints.peekHints(remaining, '', ec);
@@ -43,12 +56,29 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
       if (!refName) {
         refName = this.defaultContainerName;
       }
+      let inputOptions = delegateOptions?.options;
+      let overrideOptions = (delegateOptions?.overrides?.find(delegate => delegate.refName === refName))?.options;
+      let mergeFunction = delegateOptions?.mergeFunction;
       if(options) {
-        if(explicitOptions) {
-          options = explicitOptions.mergeFunction(options, explicitOptions.options, false);
+        if (inputOptions) {
+          if (overrideOptions) {
+            options = mergeFunction(mergeFunction(inputOptions, overrideOptions), options);
+          } else {
+            options = mergeFunction(inputOptions, options);
+          }
+        } else if (overrideOptions) {
+          options = mergeFunction(overrideOptions, options);
         }
-      } else if(explicitOptions) {
-        options = explicitOptions.options;
+      } else {
+        if (inputOptions) {
+          if (overrideOptions) {
+            options = mergeFunction(inputOptions, overrideOptions, false);
+          } else {
+            options = inputOptions;
+          }
+        } else if (overrideOptions) {
+          options = overrideOptions;
+        }
       }
       ref = this.createReference(refName, options);
 
