@@ -11,7 +11,7 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
     return 'Default';
   };
 
-  parse(near: string, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
+  parse(near: string, explicitOptions?: {options: Options, mergeFunction: (source: Options,target: Options, mergeInto?:boolean) => Options}, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, RuleScope, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-container-parser', 'parse');
     let remaining = near;
     let ref: Ref;
@@ -43,7 +43,13 @@ export abstract class RuleContainerParser<Ref extends NamedReference> {
       if (!refName) {
         refName = this.defaultContainerName;
       }
-      options = options ? options : {};
+      if(options) {
+        if(explicitOptions) {
+          options = explicitOptions.mergeFunction(options, explicitOptions.options, false);
+        }
+      } else if(explicitOptions) {
+        options = explicitOptions.options;
+      }
       ref = this.createReference(refName, options);
 
       ruleScope = this.createScope(options, parentScope, ec);

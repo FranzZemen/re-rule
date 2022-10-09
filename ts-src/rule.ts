@@ -84,13 +84,12 @@ export class Rule {
   /**
    * Executes a rule, but parses it first.
    * @param dataDomain
-   * @param rule
-   * @param options
+   * @param text The rule text.  If options are needed, they must be in the options hint
    * @param ec
    */
-  static awaitExecution(dataDomain: any, rule: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  static awaitExecution(dataDomain: any, text: string,ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     const parser = new RuleParser();
-    let [remaining, ref, ruleScope] = parser.parse(rule, undefined, ec);
+    let [remaining, ref, ruleScope, parserMessages] = parser.parse(text, undefined, undefined, ec);
     let trueOrPromise = RuleScope.resolve(ruleScope, ec);
     if(isPromise(trueOrPromise)) {
       return trueOrPromise
