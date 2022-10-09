@@ -88,7 +88,7 @@ export class Rule {
    * @param options
    * @param ec
    */
-  static parseAndAwaitExecution(dataDomain: any, rule: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  static awaitExecution(dataDomain: any, rule: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
     const parser = new RuleParser();
     let [remaining, ref, ruleScope] = parser.parse(rule, undefined, ec);
     let trueOrPromise = RuleScope.resolve(ruleScope, ec);

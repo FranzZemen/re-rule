@@ -21,7 +21,7 @@ describe('re-rule tests', () => {
         it('should execute awaitRuleExecution for text', done => {
           const domain = {price: 5.0};
           const ruleText = 'price = 5.0';
-          const result =Rule.parseAndAwaitExecution(domain, ruleText, {});
+          const result =Rule.awaitExecution(domain, ruleText, {});
           if (isPromise(result)) {
             result.then(ruleResult => {
               unReachableCode.should.be.true;
