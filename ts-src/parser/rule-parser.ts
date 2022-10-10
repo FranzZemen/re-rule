@@ -26,7 +26,7 @@ export class RuleParser extends RuleContainerParser<RuleReference> {
   }
 
 
-  protected delegateParsing(ruleReference: RuleReference, near: string, ec: ExecutionContextI | undefined): [string, ParserMessages] {
+  protected delegateParsing(ruleReference: RuleReference, near: string, scope: Scope, ec?: ExecutionContextI): [string, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-parser', 'delegateParsing');
     let remaining = near;
     let messages: ParserMessages = [];
@@ -43,7 +43,7 @@ export class RuleParser extends RuleContainerParser<RuleReference> {
 
       [remaining, ruleReference.logicalConditionRef , endConditionType, localParserMessages] = logicalConditionParser.parse(
         remaining,
-        ruleReference.loadedScope,
+        scope,
         [LogicalOperator.andNot, LogicalOperator.and, LogicalOperator.orNot, LogicalOperator.or], LogicalOperator.and,
         [/^<<(?:ap|rs|ru)[^]*$/],
         undefined,
