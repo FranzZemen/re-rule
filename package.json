@@ -1,6 +1,6 @@
 {
   "name": "@franzzemen/re-rule",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -34,10 +34,10 @@
   "dependencies": {
     "@franzzemen/app-utility": "^5.0.27",
     "@franzzemen/re-common": "7.0.37",
-    "@franzzemen/re-condition": "0.0.27",
+    "@franzzemen/re-condition": "0.0.28",
     "@franzzemen/re-data-type": "4.0.28",
     "@franzzemen/re-expression": "3.0.8",
-    "@franzzemen/re-logical-condition": "0.0.26",
+    "@franzzemen/re-logical-condition": "0.0.27",
     "fastest-validator": "^1.15.0",
     "moment": "^2.29.4",
     "object-path": "^0.11.8",
