@@ -88,7 +88,7 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
       ref.loadedScope = this.createScope(options, parentScope, ec);
 
       let localMessages: ParserMessages;
-      [remaining, localMessages] = this.delegateParsing(ref, remaining, ec);
+      [remaining, localMessages] = this.delegateParsing(ref, remaining, ref.loadedScope, ec);
       if (localMessages && localMessages.length > 0) {
         messages = messages.concat(localMessages);
       }
@@ -103,7 +103,7 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
 
   protected abstract createReference(refName: string, options: Options): Ref;
 
-  protected abstract delegateParsing(ref: Ref, near: string, ec?: ExecutionContextI): [string, ParserMessages];
+  protected abstract delegateParsing(ref: Ref, near: string, scope: Scope, ec?: ExecutionContextI): [string, ParserMessages];
 
   protected abstract createScope(options?: Options, parentScope?: Scope, ec?: ExecutionContextI): RuleScope;
 }
