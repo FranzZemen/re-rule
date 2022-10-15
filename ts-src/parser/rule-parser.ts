@@ -1,6 +1,6 @@
 import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
 import {EndConditionType, HintKey, LogicalOperator, Options, ParserMessages, Scope} from '@franzzemen/re-common';
-import {LogicalConditionParser} from '@franzzemen/re-logical-condition';
+import {LogicalConditionGroupParser} from '@franzzemen/re-logical-condition';
 import moment from 'moment';
 import {v4 as uuidV4} from 'uuid';
 import {RuleReference} from '../rule-reference.js';
@@ -36,12 +36,12 @@ export class RuleParser extends RuleContainerParser<RuleReference> {
 
     // Continue to end of input or until a new Rule is encountered
     while(remaining.length > 0) {
-      const logicalConditionParser: LogicalConditionParser = new LogicalConditionParser();
+      const logicalConditionGroupParser: LogicalConditionGroupParser = new LogicalConditionGroupParser();
 
       let endConditionType: EndConditionType;
       let localParserMessages: ParserMessages;
 
-      [remaining, ruleReference.logicalConditionRef , endConditionType, localParserMessages] = logicalConditionParser.parse(
+      [remaining, ruleReference.logicalConditionRef , endConditionType, localParserMessages] = logicalConditionGroupParser.parse(
         remaining,
         scope,
         [LogicalOperator.andNot, LogicalOperator.and, LogicalOperator.orNot, LogicalOperator.or], LogicalOperator.and,
