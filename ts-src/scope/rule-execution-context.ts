@@ -63,7 +63,8 @@ const reRuleSchema = {
   data: dataTypeOptionsSchemaWrapper,
   expression: expressionOptionsSchemaWrapper,
   condition: conditionOptionsSchemaWrapper,
-  logicalCondition: logicalConditionOptionsSchemaWrapper
+  logicalCondition: logicalConditionOptionsSchemaWrapper,
+  rule: ruleOptionsSchemaWrapper
 };
 
 export const reRuleSchemaWrapper = {
