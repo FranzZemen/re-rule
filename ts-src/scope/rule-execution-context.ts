@@ -6,10 +6,15 @@ License Type:
 import {AppExecutionContextDefaults, appSchemaWrapper} from '@franzzemen/app-execution-context';
 import {ExecutionContextDefaults, executionSchemaWrapper} from '@franzzemen/execution-context';
 import {LogExecutionContextDefaults, logSchemaWrapper} from '@franzzemen/logger-adapter';
-import {commonOptionsSchemaWrapper} from '@franzzemen/re-common';
-import {dataTypeOptionsSchemaWrapper} from '@franzzemen/re-data-type';
-import {expressionOptionsSchemaWrapper} from '@franzzemen/re-expression';
-import {LogicalConditionExecutionContext, ReLogicalCondition} from '@franzzemen/re-logical-condition';
+import {CommonExecutionContextDefaults, commonOptionsSchemaWrapper} from '@franzzemen/re-common';
+import {ConditionExecutionContextDefaults, conditionOptionsSchemaWrapper} from '@franzzemen/re-condition';
+import {DataTypeExecutionContextDefaults, dataTypeOptionsSchemaWrapper} from '@franzzemen/re-data-type';
+import {ExpressionExecutionContextDefaults, expressionOptionsSchemaWrapper} from '@franzzemen/re-expression';
+import {
+  LogicalConditionExecutionContext, LogicalConditionExecutionContextDefaults,
+  logicalConditionOptionsSchemaWrapper,
+  ReLogicalCondition
+} from '@franzzemen/re-logical-condition';
 import Validator, {ValidationError} from 'fastest-validator';
 import {isPromise} from 'util/types';
 
@@ -28,6 +33,11 @@ export class RuleExecutionContextDefaults {
   static RuleOptions: RuleOptions = {
   }
   static ReRule: ReRule = {
+    common: CommonExecutionContextDefaults.CommonOptions,
+    data: DataTypeExecutionContextDefaults.DataTypeOptions,
+    expression: ExpressionExecutionContextDefaults.ExpressionOptions,
+    condition: ConditionExecutionContextDefaults.ConditionOptions,
+    logicalCondition: LogicalConditionExecutionContextDefaults.LogicalConditionOptions,
     rule: RuleExecutionContextDefaults.RuleOptions
   }
   static RuleExecutionContext: RuleExecutionContext = {
@@ -52,7 +62,8 @@ const reRuleSchema = {
   common: commonOptionsSchemaWrapper,
   data: dataTypeOptionsSchemaWrapper,
   expression: expressionOptionsSchemaWrapper,
-  condition: ruleOptionsSchemaWrapper,
+  condition: conditionOptionsSchemaWrapper,
+  logicalCondition: logicalConditionOptionsSchemaWrapper
 };
 
 export const reRuleSchemaWrapper = {
