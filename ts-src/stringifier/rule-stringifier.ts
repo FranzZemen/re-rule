@@ -1,4 +1,4 @@
-import {ExecutionContextI} from '@franzzemen/app-utility';
+import {LogExecutionContext} from '@franzzemen/logger-adapter';
 import {LogicalConditionStringifier} from '@franzzemen/re-logical-condition';
 import {RuleReference} from '../rule-reference.js';
 import {RuleScope} from '../scope/rule-scope.js';
@@ -10,7 +10,7 @@ export class RuleStringifier {
   constructor() {
   }
 
-  stringify(ruleRef: RuleReference, scope: RuleScope, options?: StringifyRuleOptions, ec?: ExecutionContextI): string {
+  stringify(ruleRef: RuleReference, scope: RuleScope, options?: StringifyRuleOptions, ec?: LogExecutionContext): string {
     let stringified;
     // TODO: stringify options
     if (ruleRef.refName.indexOf(' ') < 0) {

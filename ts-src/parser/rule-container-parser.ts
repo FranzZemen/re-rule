@@ -1,20 +1,18 @@
-import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
-import {HintKey, Options, ParserMessages, Scope} from '@franzzemen/re-common';
+import _ from 'lodash';
+import {Hints} from '@franzzemen/hints';
+import {LogExecutionContext, LoggerAdapter} from '@franzzemen/logger-adapter';
+import {HintKey, ParserMessages, Scope} from '@franzzemen/re-common';
 import {ScopedReference} from '../rule-reference.js';
-import {RuleOptions} from '../scope/rule-options.js';
+import {ReRule} from '../scope/rule-execution-context.js';
 import {RuleScope} from '../scope/rule-scope.js';
-
-
-export type OptionMergeFunction = (target: Options, source: Options, mergeInto?: boolean) => Options;
 
 export interface RuleOptionOverrides {
   refName: string,
-  options: RuleOptions; // Base for others
+  options: ReRule; // Base for others
 }
 
 export type DelegateOptions = {
-  options?: RuleOptions, // Base for others
-  mergeFunction: OptionMergeFunction,
+  options?: ReRule, // Base for others
   overrides?: RuleOptionOverrides[]
 }
 
@@ -27,7 +25,7 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
     return 'Default';
   };
 
-  parse(near: string, delegateOptions?: DelegateOptions, parentScope?: Scope, ec?: ExecutionContextI): [string, Ref, ParserMessages] {
+  parse(near: string, delegateOptions?: DelegateOptions, parentScope?: Scope, ec?: LogExecutionContext): [string, Ref, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-container-parser', 'parse');
     let remaining = near;
     let ref: Ref;
@@ -46,10 +44,10 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
       }
       // Build the  reference
       let refName: string;
-      let options: Options;
+      let options: ReRule;
       if (hints?.has(this.hintBlock)) {
         refName = hints.get(HintKey.Name) as string;
-        options = hints.get(HintKey.Options) as Options;
+        options = hints.get(HintKey.Options) as ReRule;
         // If the hints are for this level, consume them (we already have them, so we don't need to reparse entirely)
         remaining = Hints.consumeHints(near, '', ec);
         // At this moment there is no reason to keep the hints around (we may encounter cases where we might want to
@@ -61,21 +59,20 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
       }
       let inputOptions = delegateOptions?.options;
       let overrideOptions = (delegateOptions?.overrides?.find(delegate => delegate.refName === refName))?.options;
-      let mergeFunction = delegateOptions?.mergeFunction;
       if (options) {
         if (inputOptions) {
           if (overrideOptions) {
-            options = mergeFunction(mergeFunction(inputOptions, overrideOptions), options);
+            options = _.merge(inputOptions, overrideOptions, options);
           } else {
-            options = mergeFunction(inputOptions, options);
+            options = _.merge(inputOptions, options);
           }
         } else if (overrideOptions) {
-          options = mergeFunction(overrideOptions, options);
+          options = _.merge(overrideOptions, options);
         }
       } else {
         if (inputOptions) {
           if (overrideOptions) {
-            options = mergeFunction(inputOptions, overrideOptions, false);
+            options = _.merge(inputOptions, overrideOptions, false);
           } else {
             options = inputOptions;
           }
@@ -101,9 +98,9 @@ export abstract class RuleContainerParser<Ref extends ScopedReference> {
     return [remaining, ref, messages];
   }
 
-  protected abstract createReference(refName: string, options: Options): Ref;
+  protected abstract createReference(refName: string, options: ReRule): Ref;
 
-  protected abstract delegateParsing(ref: Ref, near: string, scope: Scope, ec?: ExecutionContextI): [string, ParserMessages];
+  protected abstract delegateParsing(ref: Ref, near: string, scope: Scope, ec?: LogExecutionContext): [string, ParserMessages];
 
-  protected abstract createScope(options?: Options, parentScope?: Scope, ec?: ExecutionContextI): RuleScope;
+  protected abstract createScope(options?: ReRule, parentScope?: Scope, ec?: LogExecutionContext): RuleScope;
 }

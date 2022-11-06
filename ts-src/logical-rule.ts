@@ -18,7 +18,7 @@ export class LogicalRule /* extends Rule*/ {
 // TODO:  Rules using rules
 // TODO:  Is it just Rule or LogicalRule????
 
-import {ExecutionContextI} from '@franzzemen/app-utility';
+import {LogExecutionContext} from '@franzzemen/app-utility';
 import {LoggerAdapter} from '@franzzemen/app-utility/log/logger-adapter';
 import {Condition} from '../condition/condition';
 import {ConditionReference} from '../condition/condition-reference';
@@ -41,7 +41,7 @@ export interface LogicalRuleReference extends RuleReference {
 
 /*
 export interface  LogicalRuleI {
-  validate(item:any, execContext?: ExecutionContextI): ValidationResultI;
+  validate(item:any, execContext?: LogExecutionContext): ValidationResultI;
   conditions: LogicalCondition;
 }
 
@@ -65,7 +65,7 @@ export class LogicalRule extends Rule {
   conditions: LogicalCondition;
   static className = LogicalRule.name;
 
-  constructor(ref: RuleReference, dataTypeFactory: DataTypeFactory, execContext?: ExecutionContextI) {
+  constructor(ref: RuleReference, dataTypeFactory: DataTypeFactory, execContext?: LogExecutionContext) {
     super(ref, execContext);
     const log = new LoggerAdapter(execContext, 're-rule', 'rule', LogicalRule.className + '.constructor');
     // -----
@@ -82,7 +82,7 @@ export class LogicalRule extends Rule {
   }
 
 
-  createFromReference(ref: LogicalRuleReference, dataTypeFactory, execContext?: ExecutionContextI) {
+  createFromReference(ref: LogicalRuleReference, dataTypeFactory, execContext?: LogExecutionContext) {
     this.refName = ref.refName;
     if(ref.version) {
       this.version = {major: ref.version.major, minor: ref.version.minor, patch: ref.version.patch};
@@ -103,7 +103,7 @@ export class LogicalRule extends Rule {
     }
   }
 
-  createFromCopy(copy: LogicalRule, dataTypeFactory: DataTypeFactory, execContext?: ExecutionContextI) {
+  createFromCopy(copy: LogicalRule, dataTypeFactory: DataTypeFactory, execContext?: LogExecutionContext) {
     this.refName = copy.refName;
     if(copy.version) {
       this.version = {major: copy.version.major, minor: copy.version.minor, patch: copy.version.patch};
@@ -131,18 +131,18 @@ export class LogicalRule extends Rule {
     return ruleRef as LogicalRuleReference;
   }
 
-  recurseLogicalConditionsAsReferences(logicalCondition: LogicalCondition): LogicalConditionReference {
-    const logicalConditionRef: Partial<LogicalConditionReference> = {logicalOperator: logicalCondition.logicalOperator};
-    if(islogicalConditionArray(logicalCondition.condition)) {
+  recurseLogicalConditionsAsReferences(rule: LogicalCondition): LogicalConditionReference {
+    const logicalConditionRef: Partial<LogicalConditionReference> = {logicalOperator: rule.logicalOperator};
+    if(islogicalConditionArray(rule.condition)) {
       const conditionRef: LogicalConditionReference[] = [];
       logicalConditionRef.conditionRef = conditionRef;
-      logicalCondition.condition.forEach(eachLogicalCondition => {
+      rule.condition.forEach(eachLogicalCondition => {
         conditionRef.push(this.recurseLogicalConditionsAsReferences(eachLogicalCondition));
       });
     } else {
-      const conditionReference: Partial<ConditionReference> = {comparatorRef: logicalCondition.condition.comparator.refName};
-      conditionReference.lhsRef = this.expressionAsReference(logicalCondition.condition.lhs);
-      conditionReference.rhsRef = this.expressionAsReference(logicalCondition.condition.rhs);
+      const conditionReference: Partial<ConditionReference> = {comparatorRef: rule.condition.comparator.refName};
+      conditionReference.lhsRef = this.expressionAsReference(rule.condition.lhs);
+      conditionReference.rhsRef = this.expressionAsReference(rule.condition.rhs);
       logicalConditionRef.conditionRef = conditionReference as ConditionReference;
     }
     return logicalConditionRef as LogicalConditionReference;
@@ -164,7 +164,7 @@ export class LogicalRule extends Rule {
   }
 
 
-  private static recurseConditionRef(ref: LogicalConditionReference [], dataTypeFactory: DataTypeFactory, execContext?: ExecutionContextI): LogicalCondition[] {
+  private static recurseConditionRef(ref: LogicalConditionReference [], dataTypeFactory: DataTypeFactory, execContext?: LogExecutionContext): LogicalCondition[] {
     const logicalConditions: LogicalCondition[] = [];
     ref.forEach(logicalConditionRef => {
       if(Array.isArray(logicalConditionRef.conditionRef)) {
@@ -176,19 +176,19 @@ export class LogicalRule extends Rule {
     return logicalConditions;
   }
 
-  private static recurseCondition(conditions: LogicalCondition [], dataTypeFactory: DataTypeFactory, execContext?: ExecutionContextI): LogicalCondition[] {
+  private static recurseCondition(conditions: LogicalCondition [], dataTypeFactory: DataTypeFactory, execContext?: LogExecutionContext): LogicalCondition[] {
     const logicalConditions: LogicalCondition[] = [];
-    conditions.forEach(logicalCondition => {
-      if(Array.isArray(logicalCondition.condition)) {
-        logicalConditions.push({logicalOperator: logicalCondition.logicalOperator, condition: LogicalRule.recurseCondition(logicalCondition.condition, dataTypeFactory, execContext)});
+    conditions.forEach(rule => {
+      if(Array.isArray(rule.condition)) {
+        logicalConditions.push({logicalOperator: rule.logicalOperator, condition: LogicalRule.recurseCondition(rule.condition, dataTypeFactory, execContext)});
       } else {
-        logicalConditions.push({logicalOperator: logicalCondition.logicalOperator, condition: new Condition(logicalCondition.condition, dataTypeFactory, execContext)});
+        logicalConditions.push({logicalOperator: rule.logicalOperator, condition: new Condition(rule.condition, dataTypeFactory, execContext)});
       }
     });
     return logicalConditions;
   }
 
-  validate (item:any, execContext?: ExecutionContextI): Promise<ValidationResult> {
+  validate (item:any, execContext?: LogExecutionContext): Promise<ValidationResult> {
     if(true) {
       throw new Error('Cleanup promise')
     }
@@ -219,30 +219,30 @@ export class LogicalRule extends Rule {
     });
   }
 
-  private static evaluateConditions(logicalCondition: LogicalCondition, item: any, execContext?:ExecutionContextI): LogicalConditionResult {
+  private static evaluateConditions(rule: LogicalCondition, item: any, execContext?:LogExecutionContext): LogicalConditionResult {
     const log = new LoggerAdapter(execContext, 're-rule', 'rule', LogicalRule.className + ':evaluateConditions');
-    if(logicalCondition !== undefined) {
-      if(islogicalConditionArray(logicalCondition.condition)) {
+    if(rule !== undefined) {
+      if(islogicalConditionArray(rule.condition)) {
         // -----
-        log.trace(logicalCondition,'Found LogicalCondition[]');
+        log.trace(rule,'Found LogicalCondition[]');
         // -----
         const logicalResults: LogicalConditionResult[] = [];
-        logicalCondition.condition.forEach(opCondition => {
+        rule.condition.forEach(opCondition => {
           // Call recursively
           logicalResults.push(LogicalRule.evaluateConditions(opCondition, item));
         });
-        return LogicalRule.reduce(logicalCondition.logicalOperator, logicalResults);
+        return LogicalRule.reduce(rule.logicalOperator, logicalResults);
       } else {
         // -----
-        log.trace(logicalCondition,'Found LogicalCondition');
+        log.trace(rule,'Found LogicalCondition');
         // -----
-        const result: LogicalConditionResult = {logicalOperator: logicalCondition.logicalOperator, result: logicalCondition.condition.isValid(item)};
+        const result: LogicalConditionResult = {logicalOperator: rule.logicalOperator, result: rule.condition.isValid(item)};
         // -----
         log.trace(result, 'Result of evaluating conditions');
         return result;
       }
     } else {
-      const err = new Error ('Undefined logicalCondition');
+      const err = new Error ('Undefined rule');
       // -----
       log.error(err);
       // -----

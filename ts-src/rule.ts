@@ -1,10 +1,10 @@
-import {logErrorAndThrow} from '@franzzemen/app-utility/enhanced-error.js';
+import {logErrorAndThrow} from '@franzzemen/enhanced-error';
+import {LogExecutionContext, LoggerAdapter} from '@franzzemen/logger-adapter';
 import {isPromise} from 'node:util/types';
-import {ExecutionContextI, LoggerAdapter} from '@franzzemen/app-utility';
 import {LogicalConditionGroup, LogicalConditionResult} from '@franzzemen/re-logical-condition';
 import {RuleParser} from './parser/rule-parser.js';
 import {RuleReference, Version} from './rule-reference.js';
-import {_mergeRuleOptions, RuleOptions} from './scope/rule-options.js';
+import {ReRule} from './scope/rule-execution-context.js';
 import {RuleScope} from './scope/rule-scope.js';
 
 export interface RuleResultI {
@@ -16,7 +16,7 @@ export interface RuleResultI {
 export class RuleResult {
   protected _result: RuleResultI;
 
-  constructor(_result: RuleResultI, ec?: ExecutionContextI) {
+  constructor(_result: RuleResultI, ec?: LogExecutionContext) {
     this._result = _result;
   }
 
@@ -60,19 +60,19 @@ export class Rule {
    * @param thisScope If provided (such as right after parsing a rule), then this is the scope to use, fully initialized with references
    * @param ec
    */
-  constructor(ref: RuleReference, thisScope?: RuleScope, ec?: ExecutionContextI) {
+  constructor(ref: RuleReference, thisScope?: RuleScope, ec?: LogExecutionContext) {
     // Which scope?
     this.refName = ref.refName;
     this.scope = ref.loadedScope ? ref.loadedScope : thisScope ? thisScope : undefined;
     if(!this.scope) {
-      logErrorAndThrow(`Scope not provided for refName ${ref.refName}`, new LoggerAdapter(ec, 're-rule', 'rule', 'constructor'), ec);
+      logErrorAndThrow(`Scope not provided for refName ${ref.refName}`, new LoggerAdapter(ec, 're-rule', 'rule', 'constructor'));
     }
     this.version = ref.version;
     this.logicalConditionGroup = new LogicalConditionGroup(ref.logicalConditionRef, this.scope, ec);
   }
 
 
-  awaitEvaluation(dataDomain: any, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  awaitEvaluation(dataDomain: any, ec?: LogExecutionContext): RuleResult | Promise<RuleResult> {
     const log = new LoggerAdapter(ec, 're-rule', 'rule', 'Rule.awaitValidation');
     const logicalConditionResultOrPromise = this.logicalConditionGroup.awaitEvaluation(dataDomain, this.scope, ec);
     if(isPromise(logicalConditionResultOrPromise)) {
@@ -93,9 +93,9 @@ export class Rule {
    * @param options Options can be set here and in the text.  Text overrides any duplicate options
    * @param ec
    */
-  static awaitExecution(dataDomain: any, text: string, options?: RuleOptions, ec?: ExecutionContextI): RuleResult | Promise<RuleResult> {
+  static awaitExecution(dataDomain: any, text: string, options?: ReRule, ec?: LogExecutionContext): RuleResult | Promise<RuleResult> {
     const parser = new RuleParser();
-    let [remaining, ref, parserMessages] = parser.parse(text, {options, mergeFunction: _mergeRuleOptions}, undefined, ec);
+    let [remaining, ref, parserMessages] = parser.parse(text, {options}, undefined, ec);
     let trueOrPromise = RuleScope.resolve(ref.loadedScope, ec);
     if(isPromise(trueOrPromise)) {
       return trueOrPromise

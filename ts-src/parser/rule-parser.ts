@@ -1,9 +1,11 @@
-import {ExecutionContextI, Hints, LoggerAdapter} from '@franzzemen/app-utility';
-import {EndConditionType, HintKey, LogicalOperator, Options, ParserMessages, Scope} from '@franzzemen/re-common';
+import {Hints} from '@franzzemen/hints';
+import {LogExecutionContext, LoggerAdapter} from '@franzzemen/logger-adapter';
+import {EndConditionType, LogicalOperator, ParserMessages, Scope} from '@franzzemen/re-common';
 import {LogicalConditionGroupParser} from '@franzzemen/re-logical-condition';
 import moment from 'moment';
 import {v4 as uuidV4} from 'uuid';
 import {RuleReference} from '../rule-reference.js';
+import {ReRule} from '../scope/rule-execution-context.js';
 import {RuleScope} from '../scope/rule-scope.js';
 import {RuleHintKey} from '../util/rule-hint-key.js';
 import {RuleContainerParser} from './rule-container-parser.js';
@@ -13,11 +15,11 @@ export class RuleParser extends RuleContainerParser<RuleReference> {
     super(RuleHintKey.Rule, [RuleHintKey.RulesEngine, RuleHintKey.Application, RuleHintKey.RuleSet]);
   }
 
-  protected createScope(options?: Options, parentScope?: Scope, ec?: ExecutionContextI): RuleScope {
+  protected createScope(options?: ReRule, parentScope?: Scope, ec?: LogExecutionContext): RuleScope {
     return new RuleScope(options, parentScope, ec);
   }
 
-  protected createReference(refName: string, options: Options): RuleReference {
+  protected createReference(refName: string, options: ReRule): RuleReference {
     return {refName, version: {major: 0, minor: 0, patch: 0}, options: {}, logicalConditionRef: undefined}
   }
 
@@ -26,7 +28,7 @@ export class RuleParser extends RuleContainerParser<RuleReference> {
   }
 
 
-  protected delegateParsing(ruleReference: RuleReference, near: string, scope: Scope, ec?: ExecutionContextI): [string, ParserMessages] {
+  protected delegateParsing(ruleReference: RuleReference, near: string, scope: Scope, ec?: LogExecutionContext): [string, ParserMessages] {
     const log = new LoggerAdapter(ec, 're-rule', 'rule-parser', 'delegateParsing');
     let remaining = near;
     let messages: ParserMessages = [];
