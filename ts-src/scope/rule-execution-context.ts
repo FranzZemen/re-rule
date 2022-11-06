@@ -20,7 +20,7 @@ export interface ReRule extends ReLogicalCondition {
   rule?: RuleOptions;
 }
 
-export interface RulelExecutionContext extends LogicalConditionExecutionContext {
+export interface RuleExecutionContext extends LogicalConditionExecutionContext {
   re?: ReRule;
 }
 
@@ -30,7 +30,7 @@ export class RuleExecutionContextDefaults {
   static ReRule: ReRule = {
     rule: RuleExecutionContextDefaults.RuleOptions
   }
-  static RuleExecutionContext: RulelExecutionContext = {
+  static RuleExecutionContext: RuleExecutionContext = {
     execution: ExecutionContextDefaults.Execution(),
     app: AppExecutionContextDefaults.App,
     log: LogExecutionContextDefaults.Log,
@@ -78,16 +78,16 @@ export const ruleExecutionContextSchemaWrapper = {
 };
 
 
-export function isRuleExecutionContext(options: any | RulelExecutionContext): options is RulelExecutionContext {
+export function isRuleExecutionContext(options: any | RuleExecutionContext): options is RuleExecutionContext {
   return options && 're' in options; // Faster than validate
 }
 
 const check = (new Validator({useNewCustomCheckerFunction: true})).compile(ruleExecutionContextSchema);
 
-export function validate(context: RulelExecutionContext): true | ValidationError[] {
+export function validate(context: RuleExecutionContext): true | ValidationError[] {
   const result = check(context);
   if (isPromise(result)) {
-    throw new Error('Unexpected asynchronous on RulelExecutionContext validation');
+    throw new Error('Unexpected asynchronous on RuleExecutionContext validation');
   } else {
     if (result === true) {
       context.validated = true;
