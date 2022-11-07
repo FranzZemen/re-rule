@@ -22,7 +22,7 @@ export interface RuleOptions {
 }
 
 export interface ReRule extends ReLogicalCondition {
-  rule?: RuleOptions;
+  're-rule'?: RuleOptions;
 }
 
 export interface RuleExecutionContext extends LogicalConditionExecutionContext {
@@ -33,12 +33,12 @@ export class RuleExecutionContextDefaults {
   static RuleOptions: RuleOptions = {
   }
   static ReRule: ReRule = {
-    common: CommonExecutionContextDefaults.CommonOptions,
-    data: DataTypeExecutionContextDefaults.DataTypeOptions,
-    expression: ExpressionExecutionContextDefaults.ExpressionOptions,
-    condition: ConditionExecutionContextDefaults.ConditionOptions,
-    logicalCondition: LogicalConditionExecutionContextDefaults.LogicalConditionOptions,
-    rule: RuleExecutionContextDefaults.RuleOptions
+    're-common': CommonExecutionContextDefaults.CommonOptions,
+    're-data-type': DataTypeExecutionContextDefaults.DataTypeOptions,
+    're-expression': ExpressionExecutionContextDefaults.ExpressionOptions,
+    're-condition': ConditionExecutionContextDefaults.ConditionOptions,
+    're-logical-condition': LogicalConditionExecutionContextDefaults.LogicalConditionOptions,
+    're-rule': RuleExecutionContextDefaults.RuleOptions
   }
   static RuleExecutionContext: RuleExecutionContext = {
     execution: ExecutionContextDefaults.Execution(),
@@ -59,12 +59,12 @@ export const ruleOptionsSchemaWrapper = {
 };
 
 const reRuleSchema = {
-  common: commonOptionsSchemaWrapper,
-  data: dataTypeOptionsSchemaWrapper,
-  expression: expressionOptionsSchemaWrapper,
-  condition: conditionOptionsSchemaWrapper,
-  logicalCondition: logicalConditionOptionsSchemaWrapper,
-  rule: ruleOptionsSchemaWrapper
+  're-common': commonOptionsSchemaWrapper,
+  're-data-type': dataTypeOptionsSchemaWrapper,
+  're-expression': expressionOptionsSchemaWrapper,
+  're-condition': conditionOptionsSchemaWrapper,
+  're-logical-condition': logicalConditionOptionsSchemaWrapper,
+  're-rule': ruleOptionsSchemaWrapper
 };
 
 export const reRuleSchemaWrapper = {
